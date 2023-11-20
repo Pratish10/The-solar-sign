@@ -2,7 +2,9 @@ import { Box, Grid, Typography } from "@mui/material";
 import CustomButton from "../../Components/CustomButton";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { getSingleProductDetails } from "../../store/Actions/productsActions";
 
 const styles = {
   container: {
@@ -66,12 +68,39 @@ const styles = {
 };
 
 const ShopPageProduct = ({ src, alt, name, price, id }) => {
+  const dispatch = useDispatch();
   const productsDetailsData = useSelector((state) => state.productDetails);
   // console.log(productsDetailsData);
   const addToCartHandler = () => {
+    const existingCart = JSON.parse(localStorage.getItem('cart')) || [];
+    const productIndex = existingCart.findIndex((item) => item.product._id === productsDetailsData._id);
 
-    alert("added to cart")
+    if (productIndex !== -1) {
+      existingCart[productIndex].quantity = 1;
+    } else {
+      existingCart.push({
+        product: productsDetailsData,
+        quantity: 1,
+        subtotal: 1 * productsDetailsData.price,
+      });
+    }
+
+    let allSubTotal = localStorage.getItem('subtotal') || 0;
+    if (allSubTotal === 0)
+      allSubTotal = JSON.parse(allSubTotal)
+    allSubTotal += 1 * productsDetailsData.price
+    localStorage.setItem('subtotal', allSubTotal)
+
+    localStorage.setItem('cart', JSON.stringify(existingCart));
+
+
+
+    alert('added to cart')
   }
+
+  useEffect(() => {
+    dispatch(getSingleProductDetails(id));
+  }, [dispatch, id]);
   return (
     <Grid item mb={3}>
       <Typography variant="body2" mb={1}>
